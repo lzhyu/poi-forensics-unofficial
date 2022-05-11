@@ -25,6 +25,9 @@ if __name__=='__main__':
     videodata = videodata.transpose((0,3,1,2))
     videodata = videodata[None, :]
     model = ResNetVideo()
-    res = model(torch.from_numpy(videodata))
+    print('before cuda')
+    model = model.to('cuda')
+    print('after cuda')
+    res = model(torch.from_numpy(videodata).to('cuda'))
     print(res.size())
     print(videodata.shape)

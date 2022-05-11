@@ -153,7 +153,7 @@ class Cnn14(nn.Module):
         self.spectrogram_extractor = Spectrogram(n_fft=window_size, hop_length=hop_size, 
             win_length=window_size, window=window, center=center, pad_mode=pad_mode, 
             freeze_parameters=True)
-
+        # TIME step * spectro bin
         # Logmel feature extractor
         self.logmel_extractor = LogmelFilterBank(sr=sample_rate, n_fft=window_size, 
             n_mels=mel_bins, fmin=fmin, fmax=fmax, ref=ref, amin=amin, top_db=top_db, 
