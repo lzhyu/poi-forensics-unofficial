@@ -2,3 +2,7 @@ __pycache__/
 pretrained_models/
 *.wav
 *.jpg
+*.txt
+*.pkl
+saves/
+resources/

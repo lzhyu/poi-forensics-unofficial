@@ -9,13 +9,15 @@ class ResNetVideo(nn.Module):
     def __init__(self):
         
         super(ResNetVideo, self).__init__()
-        self.resnet18 = models.resnet18(pretrained = True)
+        self.resnet18 = models.resnet18(pretrained = False)
+        self.linear = nn.Linear(1000, 256)
         
     def forward(self, input):
         # input B,T,C,H,W
         batch_size, length, channels, H, W = input.size()
         reshaped_input = input.reshape(batch_size*length, channels, H, W)
         features = self.resnet18(reshaped_input.float())
+        features = self.linear(features)
         features = features.reshape(batch_size, length, -1)
         return features.mean(dim=1)
 

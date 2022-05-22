@@ -15,96 +15,108 @@ from multiprocessing.pool import ThreadPool
 import torchlibrosa as tl
 from torchvision import transforms
 import numpy as np
+from utils.vox_utils import extract_metadata, extract_seg_metadata
 # https://stackoverflow.com/questions/62584184/understanding-the-shape-of-spectrograms-and-n-mels
-BASE_PATH = '/mfs/lizhengyuan17-bishe/Voxceleb/official/test_videos/'
-sample_rate = 22050#16000 
-window_size = 2048#400
-hop_size = 512#160
+# BASE_PATH = '/mfs/lizhengyuan17-bishe/Voxceleb/official/test_videos/'
+sample_rate = 16000
+window_size = sample_rate//1000 * 25 # 25 ms size
+hop_size = sample_rate//1000 * 10 # 10 ms hop
 mel_bins = 128
-fmin = 50
-fmax = 14000
+# fmin = 50
+# fmax = 14000
 spectrom_feature_extractor = torch.nn.Sequential(
     tl.Spectrogram(
+        n_fft=512, 
         hop_length=hop_size,
         win_length=window_size,
-    ), tl.LogmelFilterBank(
-        sr=sample_rate,
-        n_mels=mel_bins,
-        is_log=False, # Default is true
-    ),transforms.Resize((224,224)))
-
-def extract_metadata():
-    # maintain a dict = {id: {video:[clips]}}
-    metadata = {}
-    path = Path(BASE_PATH)
-    for child in path.iterdir():
-        if child.is_dir():
-            id_number = int(child.name[2:])
-            metadata[id_number] = []
-            #load videos
-            for video_dirs in child.iterdir():
-                for seg in video_dirs.glob("*.mp4"):
-                    metadata[id_number].append(str(seg.absolute()))
-        else:
-            print('why here?')
-            print(child.name)
-    return metadata
+    ), transforms.Resize((224,224)))
+    # tl.LogmelFilterBank(
+    #     n_fft = 512,
+    #     sr=sample_rate,
+    #     n_mels=mel_bins,
+    #     is_log=False, # Default is true
+    # ))
+def load_file_transform(filename):
+    video_data = skvideo.io.vread(filename)
+    video_data = video_data.transpose((0,3,1,2))
+    # evenly sample
+    video_size = video_data.shape[0]
+    sample_indexes = np.arange(0,video_size, video_size//25)[:25]
+    video_data = video_data[sample_indexes]
+    
+    audio_path = filename[:-3]+'wav'
+    (waveform, _) = librosa.core.load(audio_path, sr = sample_rate, mono=True)
+    # NOTE: transform here?
+    print(len(waveform))
+    S = np.abs(librosa.stft(waveform, n_fft=512, hop_length=hop_size, win_length=window_size))**2
+    # S = librosa.feature.melspectrogram(S=D, sr=sample_rate)
+    # S = librosa.feature.melspectrogram(y=waveform, sr=sample_rate, n_mels=mel_bins,fmax=fmax)
+    # S_dB = librosa.power_to_db(S, ref=np.max)
+    return video_data, S
 
 def load_file(filename):
     video_data = skvideo.io.vread(filename)
     video_data = video_data.transpose((0,3,1,2))
+    # evenly sample
+    video_size = video_data.shape[0]
+    sample_indexes = np.arange(0,video_size, video_size//25)[:25]
+    video_data = video_data[sample_indexes]
     
     audio_path = filename[:-3]+'wav'
     (waveform, _) = librosa.core.load(audio_path, sr = sample_rate, mono=True)
-    # transform here
-    # S = librosa.feature.melspectrogram(y=waveform, sr=sample_rate, n_mels=mel_bins,
-    #                                 fmax=fmax)
-    # S_dB = librosa.power_to_db(S, ref=np.max)
     return video_data,waveform
     
 class LoadFileDataset(torch.utils.data.Dataset):
-    def __init__(self):
-        
-        self.metadata = extract_metadata()
-        self.ids = list(self.metadata.keys())
+    def __init__(self, metadata):
+        self.metadata = metadata
+        self.ids = list(metadata.keys())
         self.pool = ThreadPool(processes=8)
-        # use hashtable?
     
-    def get_data(self):
+    def get_data(self, one_id):
+        # 分层抽样
         # sample one id and sample 8 videos
-        SAMPLE_NUM = 4
-        one_id = choice(self.ids)
-        mp4s = self.metadata[one_id]
-        sampled_filenames = random.sample(mp4s, SAMPLE_NUM)
-        video_datas = []
-        audio_datas = []
-        async_res_list = []
-        # multiprocessing copied from https://stackoverflow.com/questions/6893968/how-to-get-the-return-value-from-a-thread-in-python
-        
-        for filename in sampled_filenames:# multithread
-            # print(filename)
-            async_result = self.pool.apply_async(load_file, (filename, ))
-            async_res_list.append(async_result)
-            # video_data, waveform = load_file(filename)
+        SAMPLE_NUM = 2
+        try:
+            # one_id = choice(self.ids)
+            mp4s = self.metadata[one_id]
+            sampled_filenames = random.sample(mp4s, SAMPLE_NUM)
+            video_datas = []
+            audio_datas = []
+            async_res_list = []
+            # multiprocessing copied from https://stackoverflow.com/questions/6893968/how-to-get-the-return-value-from-a-thread-in-python
+            
+            for filename in sampled_filenames:# multithread
+                # print(filename)
+                async_result = self.pool.apply_async(load_file, (filename, ))
+                async_res_list.append(async_result)
+                # video_data, waveform = load_file(filename)
 
-        for async_result in async_res_list:
-            video_data, waveform = async_result.get()
-            video_datas.append(video_data)
-            audio_datas.append(waveform)
+            for async_result in async_res_list:
+                video_data, waveform = async_result.get()
+                video_datas.append(video_data)
+                audio_datas.append(waveform)
 
-        return (video_datas, audio_datas, [one_id]*SAMPLE_NUM)
+            return (video_datas, audio_datas, [one_id]*SAMPLE_NUM)
+        except KeyboardInterrupt:
+            exit(1)
+        except SystemExit:
+            print('sys exit')
+            exit(1)
+        except Exception as e:
+            print('handling exception')
+            print(e)
+            return self.get_data()
+            
 
     def __len__(self):
-        return len(self.ids)
+        return len(self.ids)*16
 
     def __getitem__(self, idx):
-        return self.get_data()
+        return self.get_data(self.ids[idx//16])
 
 def spectrogram_transform(audio_waves: torch.Tensor):
     # input: waveform tensor, batch X length
     # output:resized melspectrogram
-    print(audio_waves.max())
-    print(audio_waves.min())
     resized_spectrom = spectrom_feature_extractor(audio_waves)
     return resized_spectrom
     # (batch_size, 1, time_steps, mel_bins)
@@ -133,7 +145,7 @@ def collate_fn_padd(batch):
     audio_lengths = torch.LongTensor([t.shape[0] for t in torch_audio_batch])
     min_audio_length = min([t.shape[0] for t in torch_audio_batch])
     ## pad
-    ## TODO: audio transform
+    ## audio transform
 
     torch_video_batch = [torch.Tensor(t)[:min_video_length] for t in torch_video_batch]
     torch_audio_batch = [torch.Tensor(t)[:min_audio_length] for t in torch_audio_batch]
@@ -144,31 +156,38 @@ def collate_fn_padd(batch):
     torch_audio_spectrom_batch = spectrogram_transform(torch_audio_batch)
     # list of sequences with size L x *
     # considering memory, encode to
-    print(video_lengths)
-    print(audio_lengths)
+    # print(video_lengths)
+    # print(audio_lengths)
     return torch_video_batch, torch_audio_spectrom_batch, torch_id_batch
 
 import cv2
 def visualize(img_numpy):
     sample_spec = img_numpy
+    print(sample_spec.max())
+    print(sample_spec.min())
     sample = sample_spec/sample_spec.max()*255
-    print(sample.max())
-    print(sample.min())
+
     cv2.imwrite("sample.jpg", sample.astype(np.uint8))
 
 if __name__=='__main__':
+    # NOTE: test audio transform 
     # filename = '/mfs/lizhengyuan17-bishe/Voxceleb/official/test_videos/id00017/01dfn2spqyE/00001.mp4'
-    # vd,ad = load_file(filename)
-    # print(ad.max())
-    # print(ad.min())
-    # print(ad.shape)
-    # import cv2
-    # cv2.imwrite("sample.jpg", ad.astype(np.uint8))
-    dataset = LoadFileDataset()
-    loader = DataLoader(dataset, batch_size=2, collate_fn=collate_fn_padd)
-    print(len(dataset))
-    for video_batch, audio_spectrom_batch, id_batch in loader:
-        print(video_batch.size())
-        print(audio_spectrom_batch.size())
-        print(id_batch.size())
-        break
+    filename = '/mfs/lizhengyuan17-bishe/Voxceleb2/test_segs/mp4/id00081/2xYrsnvtUWc/00002/0.mp4'
+    video_data, waveform = load_file(filename)
+    print(waveform.shape)
+    spect = spectrogram_transform(torch.from_numpy(waveform).unsqueeze(0))
+    print(spect.size())
+    print(spect.max())
+    visualize(spect.squeeze().numpy())
+    # _, spect = load_file_transform(filename)
+    # print(spect.shape)
+    # visualize(spect)
+    # NOTE: test dataset
+    # dataset = LoadFileDataset()
+    # loader = DataLoader(dataset, batch_size=2, collate_fn=collate_fn_padd)
+    # print(len(dataset))
+    # for video_batch, audio_spectrom_batch, id_batch in loader:
+    #     print(video_batch.size())
+    #     print(audio_spectrom_batch.size())
+    #     print(id_batch.size())
+    #     break
