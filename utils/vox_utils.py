@@ -1,31 +1,30 @@
 from pathlib import Path
-BASE_PATH = Path('/mfs/lizhengyuan17-bishe/Voxceleb/official/test_videos/')
-VOX_BASE_PATH = Path('/mfs/lizhengyuan17-bishe/Voxceleb2/test/mp4')
-VOX_SEG_PATH = Path('/mfs/lizhengyuan17-bishe/Voxceleb2/test_segs/mp4')
+# BASE_PATH = Path('/mfs/lizhengyuan17-bishe/Voxceleb/official/test_videos/')
+# VOX_BASE_PATH = Path('/mfs/lizhengyuan17-bishe/Voxceleb2/test/mp4')
+VOX_SEG_PATH = Path('/home/lizhengyuan17-bishe/test_segs/mp4')
 # ok
-def extract_metadata():
-    # maintain a dict = {id: [video clips]}}
-    metadata = {}
-    path = BASE_PATH
-    for child in path.iterdir():
-        if child.is_dir():
-            id_number = int(child.name[2:])
-            metadata[id_number] = []
-            #load videos
-            for video_dirs in child.iterdir():
-                for seg in video_dirs.glob("*.mp4"):
-                    if 'crop' not in str(seg):
-                        metadata[id_number].append(str(seg))
-        else:
-            print('why here?')
-            print(child.name)
-    total_id_number = len(list(metadata.keys()))
-    print(f'total ids {total_id_number}')
-    total_video_number = sum([len(ls) for ls in metadata.values()])
-    print(f'total num {total_video_number}')
-    return metadata
+# def extract_metadata():
+#     # maintain a dict = {id: [video clips]}}
+#     metadata = {}
+#     path = BASE_PATH
+#     for child in path.iterdir():
+#         if child.is_dir():
+#             id_number = int(child.name[2:])
+#             metadata[id_number] = []
+#             #load videos
+#             for video_dirs in child.iterdir():
+#                 for seg in video_dirs.glob("*.mp4"):
+#                     if 'crop' not in str(seg):
+#                         metadata[id_number].append(str(seg))
+#         else:
+#             print('why here?')
+#             print(child.name)
+#     total_id_number = len(list(metadata.keys()))
+#     print(f'total ids {total_id_number}')
+#     total_video_number = sum([len(ls) for ls in metadata.values()])
+#     print(f'total num {total_video_number}')
+#     return metadata
 
-# FIXME: test after clip finished
 def extract_seg_metadata():
     # maintain a dict = {id: [video clips]}}
     metadata = {}

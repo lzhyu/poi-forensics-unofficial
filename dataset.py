@@ -15,7 +15,7 @@ from multiprocessing.pool import ThreadPool
 import torchlibrosa as tl
 from torchvision import transforms
 import numpy as np
-from utils.vox_utils import extract_metadata, extract_seg_metadata
+from utils.vox_utils import extract_seg_metadata# extract_metadata, 
 # https://stackoverflow.com/questions/62584184/understanding-the-shape-of-spectrograms-and-n-mels
 # BASE_PATH = '/mfs/lizhengyuan17-bishe/Voxceleb/official/test_videos/'
 sample_rate = 16000
@@ -71,11 +71,12 @@ class LoadFileDataset(torch.utils.data.Dataset):
         self.metadata = metadata
         self.ids = list(metadata.keys())
         self.pool = ThreadPool(processes=8)
+        self.num_id = len(self.ids)
     
     def get_data(self, one_id):
         # 分层抽样
         # sample one id and sample 8 videos
-        SAMPLE_NUM = 2
+        SAMPLE_NUM = 4
         try:
             # one_id = choice(self.ids)
             mp4s = self.metadata[one_id]
@@ -109,10 +110,10 @@ class LoadFileDataset(torch.utils.data.Dataset):
             
 
     def __len__(self):
-        return len(self.ids)*16
+        return self.num_id*16
 
     def __getitem__(self, idx):
-        return self.get_data(self.ids[idx//16])
+        return self.get_data(self.ids[idx%self.num_id])
 
 def spectrogram_transform(audio_waves: torch.Tensor):
     # input: waveform tensor, batch X length

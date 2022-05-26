@@ -53,11 +53,15 @@ def contrastive_loss(features: torch.Tensor,
     # subtract the max value in a row
     exp_logits = logits.exp()
 
-    # FIXME: record nearest
+    # NOTE: record nearest
     # should have B X 1, record the index of nearest
-    # 除了自己外的max
+    # nearest_indices = torch.topk(logits, 2, dim=1, largest=True)[1]
+    # compute the similarity between zero and array
+    similarity_zero = logits[0]
+    # [B]
+    
+    # record distance metrix
 
-    nearest_indices = torch.topk(logits, 2, dim=1, largest=True)[1]
     # The following masks are all tiled by the number of views, i.e., they have
     # shape [local_batch_size * num_anchor_views, global_batch_size * num_views].
 
@@ -86,7 +90,7 @@ def contrastive_loss(features: torch.Tensor,
 
     loss = loss.mean()
 
-    return loss, nearest_indices
+    return loss, similarity_zero# nearest_indices
 
 if __name__=='__main__':
     features = torch.randn((8,10))
