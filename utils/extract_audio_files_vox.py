@@ -3,9 +3,7 @@ from moviepy.editor import *
 from vox_utils import extract_metadata, extract_seg_metadata
 from pathlib import Path
 def save_audio_file(video_path: Path):
-    # print(str(video_path.absolute()))
-    
-    
+
     audio_path = video_path.parent / f'{video_path.stem}.wav'
     if audio_path.exists():
         return

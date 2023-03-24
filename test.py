@@ -11,7 +11,7 @@ from sklearn.metrics import roc_curve, auc
 from pathlib import Path
 
 device = 'cuda' if torch.cuda.is_available() else 'cpu'
-# device ='cpu'
+
 device = torch.device(device)
 spectrom_feature_extractor = spectrom_feature_extractor.to(device)
 EXP_ID = "test_merge"

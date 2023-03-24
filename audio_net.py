@@ -27,7 +27,7 @@ if __name__=='__main__':
     hop_size=hop_size, mel_bins=mel_bins, fmin=fmin, fmax=fmax, 
     classes_num=classes_num)
     # https://stackoverflow.com/questions/26741116/python-extract-wav-from-video-file
-    video_path = '/mfs/lizhengyuan17-bishe/Voxceleb/official/test_videos/id00017/01dfn2spqyE/00001.mp4'
+    video_path = 'YOURPATH/Voxceleb/official/test_videos/id00017/01dfn2spqyE/00001.mp4'
     video = VideoFileClip(video_path)
     audio_path = 'test.wav'
     video.audio.write_audiofile(audio_path)

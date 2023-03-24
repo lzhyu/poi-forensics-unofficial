@@ -4,8 +4,8 @@ from moviepy.editor import *
 import json
 from pdfdc_utils import extract_pdfdc_metadata, extract_pdfdc_segs_metadata
 from multiprocessing.pool import ThreadPool
-jsonpath = '/mfs/lizhengyuan17-bishe/pDFDC/dfdc_preview_set/dataset.json'
-BASE_PATH = '/mfs/lizhengyuan17-bishe/pDFDC/dfdc_preview_set/'
+jsonpath = 'YOURPATH/pDFDC/dfdc_preview_set/dataset.json'
+BASE_PATH = 'YOURPATH/pDFDC/dfdc_preview_set/'
 
 def save_audio_file(video_path: Path):
     # print(str(video_path.absolute()))

@@ -17,7 +17,7 @@ from torchvision import transforms
 import numpy as np
 from utils.vox_utils import extract_seg_metadata# extract_metadata, 
 # https://stackoverflow.com/questions/62584184/understanding-the-shape-of-spectrograms-and-n-mels
-# BASE_PATH = '/mfs/lizhengyuan17-bishe/Voxceleb/official/test_videos/'
+
 sample_rate = 16000
 window_size = sample_rate//1000 * 25 # 25 ms size
 hop_size = sample_rate//1000 * 10 # 10 ms hop
@@ -30,12 +30,7 @@ spectrom_feature_extractor = torch.nn.Sequential(
         hop_length=hop_size,
         win_length=window_size,
     ), transforms.Resize((224,224)))
-    # tl.LogmelFilterBank(
-    #     n_fft = 512,
-    #     sr=sample_rate,
-    #     n_mels=mel_bins,
-    #     is_log=False, # Default is true
-    # ))
+
 def load_file_transform(filename):
     video_data = skvideo.io.vread(filename)
     video_data = video_data.transpose((0,3,1,2))
@@ -172,8 +167,8 @@ def visualize(img_numpy):
 
 if __name__=='__main__':
     # NOTE: test audio transform 
-    # filename = '/mfs/lizhengyuan17-bishe/Voxceleb/official/test_videos/id00017/01dfn2spqyE/00001.mp4'
-    filename = '/mfs/lizhengyuan17-bishe/Voxceleb2/test_segs/mp4/id00081/2xYrsnvtUWc/00002/0.mp4'
+
+    filename = 'YOURPATH/Voxceleb2/test_segs/mp4/id00081/2xYrsnvtUWc/00002/0.mp4'
     video_data, waveform = load_file(filename)
     print(waveform.shape)
     spect = spectrogram_transform(torch.from_numpy(waveform).unsqueeze(0))

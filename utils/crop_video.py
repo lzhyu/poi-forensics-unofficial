@@ -1,6 +1,5 @@
 # no need to change audio, just change frame is enough
 # no need to store bbox 
-# TODO: wait for running
 import imageio
 import face_alignment
 import numpy as np
@@ -13,8 +12,8 @@ from multiprocessing import Pool
 from pdfdc_utils import extract_pdfdc_metadata
 # test_video_path = '/mfs/lizhengyuan17-bishe/pDFDC/dfdc_preview_set/method_B/1260311/1260311_C/1255229_1260311_C_001.mp4'
 
-jsonpath = '/mfs/lizhengyuan17-bishe/pDFDC/dfdc_preview_set/dataset.json'
-BASE_PATH = '/mfs/lizhengyuan17-bishe/pDFDC/dfdc_preview_set/'
+jsonpath = 'YOURPATH/pDFDC/dfdc_preview_set/dataset.json'
+BASE_PATH = 'YOURPATH/pDFDC/dfdc_preview_set/'
 
 
 def crop_video(video_path, fa):
