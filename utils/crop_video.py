@@ -10,7 +10,6 @@ import os
 from pathlib import Path
 from multiprocessing import Pool
 from pdfdc_utils import extract_pdfdc_metadata
-# test_video_path = '/mfs/lizhengyuan17-bishe/pDFDC/dfdc_preview_set/method_B/1260311/1260311_C/1255229_1260311_C_001.mp4'
 
 jsonpath = 'YOURPATH/pDFDC/dfdc_preview_set/dataset.json'
 BASE_PATH = 'YOURPATH/pDFDC/dfdc_preview_set/'

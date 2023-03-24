@@ -13,7 +13,6 @@ import time
 from vox_utils import extract_vox_dir
 from pdfdc_utils import extract_pdfdc_dir, PDFDC_BASE_PATH
 # Replace the filename below.
-# test_video_path = '/mfs/lizhengyuan17-bishe/pDFDC/dfdc_preview_set/original_videos/643049/643049_A_001.mp4'
 
 OUTPUT_BASE_PATH = Path('YOURPATH/Voxceleb2/test_segs/mp4')
 TMP_PATH = Path('YOURPATH/tmp')
